@@ -10,5 +10,5 @@ def sql_inserter(data_dic):
 	cur.close()
 	con.close()
 if __name__ == "__main__":
-	
+	print("we did it reddit! Kappa")
 
