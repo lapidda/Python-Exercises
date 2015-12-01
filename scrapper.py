@@ -24,21 +24,22 @@ def get_matrixurls(url, verband = 0, bezirk = 0, kreis = 0):
 				for li in child.find_all('li'):
 					league = li.find('a')
 					league_urls = "http://bttv.click-tt.de%s" % (league['href'])
+					lid = sqlwork.add_liga(liga = league.text, klasse = klasse, vid = verband, bid = bezirk, kid = kreis)
 					#Liga Link
 					#print(league_urls.encode('utf-8'))
 					#Liga Name
-					if(kreis != 0):
-						print("Verband: %s -> Bezirk: %s -> Kreis: %s -> Klasse: %s -> Liga: %s" % (verband, bezirk, kreis, klasse, league.text))
-					elif(bezirk != 0):
-						print("Verband: %s -> Bezirk: %s -> Klasse: %s -> Liga: %s" % (verband, bezirk, klasse, league.text))
-					else:
-						print("Verband: %s -> Klasse: %s -> Liga: %s" % (verband, klasse, league.text))
+					#if(kreis != 0):
+						#print("Verband: %s -> Bezirk: %s -> Kreis: %s -> Klasse: %s -> Liga: %s" % (verband, bezirk, kreis, klasse, league.text))
+					#elif(bezirk != 0):
+						#print("Verband: %s -> Bezirk: %s -> Klasse: %s -> Liga: %s" % (verband, bezirk, klasse, league.text))
+					#else:
+						#print("Verband: %s -> Klasse: %s -> Liga: %s" % (verband, klasse, league.text))
 
 def navigate_aufstellungen(url):
 	#TODO navigate to Mannschaftsaufstellungen
 	return
 
-def get_subregions(url, verband = 0, bezirk = 0, kreis = 0):
+def get_subregions(url, vid = -1):
 	page = urllib.request.urlopen(url)
 	soup = BeautifulSoup(page, "html.parser")
 
@@ -51,14 +52,17 @@ def get_subregions(url, verband = 0, bezirk = 0, kreis = 0):
 		bz_a = bzk[i].find('a')
 		bezirk = bz_a.text
 		follow_url = "http://bttv.click-tt.de%s" % (bz_a['href'])
-		print("Verband: %s -> Bezirk: %s" % (verband, bezirk))
-		get_matrixurls(follow_url, verband = verband, bezirk = bezirk)
+		#print("Verband: %s -> Bezirk: %s" % (verband, bezirk))
+		bid = sqlwork.add_bezirk(vid = vid, bezirk = bezirk)
+		get_matrixurls(follow_url, verband = vid, bezirk = bid)
 		for kz_li in krs[i-1].find_all('li'):
 			kz_a = kz_li.find('a')
 			kreis = kz_a.text
-			follow_url = "http://bttv.click-tt.de%s" % (kz_a['href'])
-			print("Verband: %s -> Bezirk: %s -> Kreis: %s" % (verband, bezirk, kreis))
-			get_matrixurls(follow_url, verband = verband, bezirk = bezirk, kreis = kreis)
+			#follow_url = "http://bttv.click-tt.de%s" % (kz_a['href'])
+			kid = sqlwork.add_kreis(vid = vid, bid = bid, kreis = kreis)
+			#print("Verband: %s -> Bezirk: %s -> Kreis: %s" % (verband, bezirk, kreis))
+
+			get_matrixurls(follow_url, verband = vid, bezirk = bid, kreis = kid)
 
 
 			
@@ -73,11 +77,12 @@ def get_subregions_toplevel(url):
 	for ul in relevant.find_all("ul", {"class":"horizontal-menu"}):
 		for a in ul.find_all("a"):
 			follow_url = "http://bttv.click-tt.de%s" % (a['href'])
-			get_matrixurls(follow_url, verband = a.text)
-			get_subregions(follow_url, verband = a.text)
+			vid = sqlwork.add_verband(a.text)
+			get_matrixurls(follow_url, verband = vid)
+			get_subregions(follow_url, vid = vid)
 
 def get_all(url):
-	get_matrixurls(url, 'DTTB')
+	get_matrixurls(url, 0)
 	get_subregions_toplevel(url)
 
 
